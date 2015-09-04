@@ -7,9 +7,7 @@ THREE.Clock = function ( autoStart ) {
 	this.autoStart = ( autoStart !== undefined ) ? autoStart : true;
 
 	this.startTime = 0;
-	this.oldTime = 0;
-	this.elapsedTime = 0;
-
+	this._oldTime = 0;
 	this.running = false;
 
 };
@@ -20,32 +18,32 @@ THREE.Clock.prototype = {
 
 	start: function () {
 
-		this.startTime = self.performance !== undefined && self.performance.now !== undefined
-					 ? self.performance.now()
-					 : Date.now();
-
-		this.oldTime = this.startTime;
+		this.startTime = this.getCurrentTime();
+		this._oldTime = this.startTime;
 		this.running = true;
 
 	},
 
 	stop: function () {
 
-		this.updateElapsedTime();
 		this.running = false;
 
 	},
 
 	getElapsedTime: function () {
 
-		this.updateElapsedTime();
-		return this.elapsedTime;
+		return this.getCurrentTime() - this.startTime;
 
 	},
 
-	updateElapsedTime: function () {
+	getCurrentTime: function() {
 
-		this.elapsedTime += this.getDelta();
+		var currentTime = self.performance !== undefined && self.performance.now !== undefined
+				? self.performance.now()
+				: Date.now();
+
+		// Convert to nanoseconds, which is accuracy of performance.now
+		return currentTime * 0.001;
 
 	},
 
@@ -61,12 +59,9 @@ THREE.Clock.prototype = {
 
 		if ( this.running ) {
 
-			var newTime = self.performance !== undefined && self.performance.now !== undefined
-					 ? self.performance.now()
-					 : Date.now();
-
-			diff = 0.001 * ( newTime - this.oldTime );
-			this.oldTime = newTime;
+			var newTime = this.getCurrentTime();
+			diff = newTime - this._oldTime;
+			this._oldTime = newTime;
 
 		}
 

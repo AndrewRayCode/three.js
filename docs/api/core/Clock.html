@@ -34,19 +34,6 @@
 		This counted from the number of milliseconds elapsed since 1 January 1970 00:00:00 UTC.
  		</div>
 
-
-		<h3>[property:Float oldTime]</h3>
-		<div>
-		When the clock is running, It holds the previous time from a update.<br />
-		This counted from the number of milliseconds elapsed since 1 January 1970 00:00:00 UTC.
- 		</div>
-
-		<h3>[property:Float elapsedTime]</h3>
-		<div>
-		When the clock is running, It holds the time elapsed between the start of the clock to the previous update.<br />
-		This counted from the number of milliseconds elapsed since 1 January 1970 00:00:00 UTC.
- 		</div>
-
 		<h3>[property:Boolean running]</h3>
 		<div>
 		This property keeps track whether the clock is running or not.
@@ -67,12 +54,17 @@
 
 		<h3>[method:Float getElapsedTime]()</h3>
 		<div>
-		Get the seconds passed since the clock started.
+		Get the time passed since the clock started, in nanoseconds.
+		</div>
+
+		<h3>[method:Float getCurrentTime]()</h3>
+		<div>
+		Get the time passed since the clock started, in nanoseconds.
 		</div>
 
 		<h3>[method:Float getDelta]()</h3>
 		<div>
-		Get the seconds passed since the last call to this method.
+		Get the time passed since the last call to this method, in nanoseconds
 		</div>
 
 
