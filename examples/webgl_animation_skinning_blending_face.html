@@ -37,7 +37,7 @@
 		<script src="js/libs/stats.min.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script src="js/BlendCharacter.js"></script>
-		<script src="js/BlendCharacterGui.js"></script>
+		<script src="js/BlendCharacterGui-face.js"></script>
 		<script src="js/libs/dat.gui.min.js"></script>
 
 		<script>
@@ -46,7 +46,7 @@
 
 			var container, stats;
 
-			var blendMesh, helper, camera, scene, renderer, controls;
+			var blendMesh, helper, camera, scene, renderer, controls, mixer, group;
 
 			var clock = new THREE.Clock();
 			var gui = null;
@@ -91,10 +91,64 @@
 				window.addEventListener( 'toggle-show-skeleton', onShowSkeleton );
 				window.addEventListener( 'toggle-show-model', onShowModel );
 
-				blendMesh = new THREE.BlendCharacter();
-				blendMesh.load( "models/skinned/charisma-legs.json", start );
+                new THREE.ObjectLoader().load("models/skinned/charisma.json", function(loaded) {
 
-			}
+                    console.log('loaded scene',loaded);
+                    var cmesh = loaded.children[0];
+                    var geometry = cmesh.geometry;
+
+                    group = new THREE.Object3D();
+                    scene.add(group);
+
+                    cmesh.rotation.y = Math.PI * -135 / 180;
+
+                    var mesh = new THREE.SkinnedMesh(
+                        geometry,
+                        new THREE.MeshPhongMaterial()
+                    );
+
+                    group.add( mesh );
+                    group.scale.set( 0.5, 0.5, 0.5 );
+                    console.log("new scale",group.scale);
+
+                    mesh.material.skinning = true;
+
+                    mixer = new THREE.AnimationMixer( mesh );
+                    mixer.stopAllAction();
+
+                    // Create the animations
+                    for ( var i = 0; i < mesh.geometry.animations.length; ++ i ) {
+
+                        mixer.clipAction( mesh.geometry.animations[ i ] ).setEffectiveWeight( 1 ).play();
+
+                    }
+
+                    var aspect = window.innerWidth / window.innerHeight;
+                    var radius = mesh.geometry.boundingSphere.radius;
+
+                    camera = new THREE.PerspectiveCamera( 45, aspect, 1, 10000 );
+                    camera.position.set( 0.0, radius, radius * 3.5 );
+
+                    controls = new THREE.OrbitControls( camera );
+                    controls.target.set( 0, radius, 0 );
+                    controls.update();
+
+                    // Set default weights
+                    //mesh.applyWeight( 'Open Mouth', 1 );
+
+                    //gui = new BlendCharacterGui(mesh);
+
+                    // Create the debug visualization
+
+                    //helper = new THREE.SkeletonHelper( mesh );
+                    //helper.material.linewidth = 3;
+                    //scene.add( helper );
+
+                    animate();
+
+                }, function() {}, function() {} );
+
+            }
 
 			function onWindowResize() {
 
@@ -115,6 +169,7 @@
 				// the blend mesh will combine 1 or more animations
 				for ( var i = 0; i < data.anims.length; ++i ) {
 
+                    //console.log('starting',data.anims[i],'with weight',data.weights[i]);
 					blendMesh.play(data.anims[i], data.weights[i]);
 
 				}
@@ -208,9 +263,7 @@
 				controls.update();
 
 				// Set default weights
-				blendMesh.applyWeight( 'Idle', 1 / 3 );
-				blendMesh.applyWeight( 'Walk', 1 / 3 );
-				blendMesh.applyWeight( 'Jump', 1 / 3 );
+				blendMesh.applyWeight( 'Open Mouth', 1 );
 
 				gui = new BlendCharacterGui(blendMesh);
 
@@ -233,16 +286,17 @@
 
 				// step forward in time based on whether we're stepping and scale
 
-				var scale = gui.getTimeScale();
+				//var scale = gui.getTimeScale();
 				var delta = clock.getDelta();
-				var stepSize = (!isFrameStepping) ? delta * scale: timeToStep;
+				//var stepSize = (!isFrameStepping) ? delta * scale: timeToStep;
 
 				// modify blend weights
 
-				blendMesh.update( stepSize );
-				helper.update();
-				gui.update( blendMesh.mixer.time );
+				//blendMesh.update( stepSize );
+				//helper.update();
+				//gui.update( blendMesh.mixer.time );
 
+                mixer.update( delta );
 				renderer.render( scene, camera );
 				stats.end();
 

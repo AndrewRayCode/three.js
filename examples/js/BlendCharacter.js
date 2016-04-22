@@ -44,7 +44,7 @@ THREE.BlendCharacter = function () {
 			// Create the animations
 			for ( var i = 0; i < scope.geometry.animations.length; ++ i ) {
 
-				scope.mixer.clipAction( scope.geometry.animations[ i ] );
+				scope.mixer.clipAction( scope.geometry.animations[ i ] ).setEffectiveWeight( 1 ).play();
 
 			}
 
@@ -92,6 +92,7 @@ THREE.BlendCharacter = function () {
 
 	this.applyWeight = function( animName, weight ) {
 
+        console.log('setting',animName,'weight to',weight);
 		this.mixer.clipAction( animName ).setEffectiveWeight( weight );
 
 	};

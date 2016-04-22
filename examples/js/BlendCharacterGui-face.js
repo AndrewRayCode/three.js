@@ -12,9 +12,7 @@ function BlendCharacterGui( blendMesh ) {
 		"Time Scale": 1.0,
 		"Step Size": 0.016,
 		"Crossfade Time": 3.5,
-		"Idle": 0.33,
-		"Walk": 0.33,
-		"Jump": 0.33
+		"Open Mouth": 0.33,
 
 	};
 
@@ -40,9 +38,7 @@ function BlendCharacterGui( blendMesh ) {
 
 	this.update = function( time ) {
 
-		controls[ 'Idle' ] = blendMesh.getWeight( 'Idle' );
-		controls[ 'Walk' ] = blendMesh.getWeight( 'Walk' );
-		controls[ 'Jump' ] = blendMesh.getWeight( 'Jump' );
+		controls[ 'Open Mouth' ] = blendMesh.getWeight( 'Open Mouth' );
 
 	};
 
@@ -64,13 +60,8 @@ function BlendCharacterGui( blendMesh ) {
 		playback.add( controls, "start" );
 		playback.add( controls, "pause" );
 		playback.add( controls, "step" );
-		playback.add( controls, "Idle to Walk" );
-		playback.add( controls, "Walk to Jump" );
-		playback.add( controls, "warp Walk to Jump" );
 
-		blending.add( controls, "Idle", 0, 1, 0.01 ).listen().onChange( controls.weight );
-		blending.add( controls, "Walk", 0, 1, 0.01 ).listen().onChange( controls.weight );
-		blending.add( controls, "Jump", 0, 1, 0.01 ).listen().onChange( controls.weight );
+		blending.add( controls, "Open Mouth", 0, 1, 0.01 ).listen().onChange( controls.weight );
 
 		settings.open();
 		playback.open();
@@ -84,11 +75,9 @@ function BlendCharacterGui( blendMesh ) {
 
 			detail: {
 
-				anims: [ "Idle", "Walk", "Jump" ],
+				anims: [ "Open Mouth" ],
 
-				weights: [ controls[ 'Idle' ],
-						   controls[ 'Walk' ],
-						   controls[ 'Jump' ] ]
+				weights: [ controls[ 'Open Mouth' ] ]
 			}
 
 		};
@@ -126,10 +115,8 @@ function BlendCharacterGui( blendMesh ) {
 	controls.weight = function() {
 
 		// renormalize
-		var sum = controls[ 'Idle' ] + controls[ 'Walk' ] + controls[ 'Jump' ];
-		controls[ 'Idle' ] /= sum;
-		controls[ 'Walk' ] /= sum;
-		controls[ 'Jump' ] /= sum;
+		var sum = controls[ 'Open Mouth' ];
+		controls[ 'Open Mouth' ] /= sum;
 
 		var weightEvent = new CustomEvent( 'weight-animation', getAnimationData() );
 		window.dispatchEvent( weightEvent );
@@ -144,35 +131,6 @@ function BlendCharacterGui( blendMesh ) {
 		fadeData.detail.time = controls[ "Crossfade Time" ];
 
 		window.dispatchEvent( new CustomEvent( 'crossfade', fadeData ) );
-
-	};
-
-	controls.warp = function( from, to ) {
-
-		var warpData = getAnimationData();
-		warpData.detail.from = 'Walk';
-		warpData.detail.to = 'Jump';
-		warpData.detail.time = controls[ "Crossfade Time" ];
-
-		window.dispatchEvent( new CustomEvent( 'warp', warpData ) );
-
-	};
-
-	controls[ 'Idle to Walk' ] = function() {
-
-		controls.crossfade( 'Idle', 'Walk' );
-
-	};
-
-	controls[ 'Walk to Jump' ] = function() {
-
-		controls.crossfade( 'Walk', 'Jump' );
-
-	};
-
-	controls[ 'warp Walk to Jump' ] = function() {
-
-		controls.warp( 'Walk', 'Jump' );
 
 	};
 
