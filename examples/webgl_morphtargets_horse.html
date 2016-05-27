@@ -17,11 +17,10 @@
 
 		<script src="../build/three.js"></script>
 		<script src="js/libs/stats.min.js"></script>
-		<script src="js/AnimationClipCreator.js"></script>
 
 		<script>
 
-			var container, stats;
+			var container, stats, clip, action, clip2, action2;
 			var camera, scene, projector, renderer;
 			var mesh, mixer;
 
@@ -38,18 +37,22 @@
 				info.style.top = '10px';
 				info.style.width = '100%';
 				info.style.textAlign = 'center';
-				info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> webgl - morph targets - horse. model by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a>';
+				info.innerHTML = 'Farts';
 				container.appendChild( info );
 
 				//
 
 				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.position.y = 300;
-				camera.target = new THREE.Vector3( 0, 150, 0 );
+				camera.position.y = 1;
+				camera.target = new THREE.Vector3( 0, 0, 0 );
 
 				scene = new THREE.Scene();
 
 				//
+
+                var sg = new THREE.SphereGeometry( 0.24, 32, 32 );
+                var sphere = new THREE.Mesh( sg, new THREE.MeshPhongMaterial({ color: 0xffff00 }) );
+                scene.add( sphere );
 
 				var light = new THREE.DirectionalLight( 0xefefff, 1.5 );
 				light.position.set( 1, 1, 1 ).normalize();
@@ -59,20 +62,50 @@
 				light.position.set( -1, -1, -1 ).normalize();
 				scene.add( light );
 
-				var loader = new THREE.JSONLoader();
-				loader.load( "models/animated/horse.js", function( geometry ) {
+				var loader = new THREE.ObjectLoader();
+				loader.load( "models/animated/charisma-lid.json", function( s ) {
+                    //console.log('loaded',s);
 
-					mesh = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( {
-						vertexColors: THREE.FaceColors,
-						morphTargets: true
-					} ) );
-					mesh.scale.set( 1.5, 1.5, 1.5 );
+                    var geometry = s.children[ 0 ].geometry;
+                    geometry.computeVertexNormals();
+                    geometry.computeFaceNormals();
+
+                    var material = new THREE.MeshLambertMaterial({
+						color: new THREE.Color( 0.1, 0, 1.0 ),
+                        morphTargets: true,
+					});
+                    material.side = THREE.DoubleSide;
+
+					mesh = new THREE.Mesh( geometry, material );
+					//mesh.scale.set(0.01, 0.01, 0.01);
+
 					scene.add( mesh );
 
 					mixer = new THREE.AnimationMixer( mesh );
 
-					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 30 );
-					mixer.clipAction( clip ).setDuration( 1 ).play();
+                    var flatVerts = geometry.vertices.reduce( function( acc, v3 ) {
+                        return acc.concat( new THREE.Vector3( v3.x, -v3.z, v3.y ) );
+                    }, [] );
+                    var baseMorph = { name: 'no', vertices: flatVerts };
+                    console.log('morphTargets',geometry.morphTargets[0]);
+                    console.log('baseMorph',baseMorph);
+
+                    clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'blink', [
+                            geometry.morphTargets[ 0 ], // open
+                            geometry.morphTargets[ 1 ], // half
+                    ], 3 );
+					action = mixer.clipAction( clip ).play();
+
+                    /*
+                    clip2 = THREE.AnimationClip.CreateFromMorphTargetSequence( 'dunk', [
+                            geometry.morphTargets[ 0 ], // open
+                            geometry.morphTargets[ 2 ], // full
+                    ], 3 );
+					action2 = mixer.clipAction( clip2 ).play();
+                    */
+
+                    //console.log('action',action);
+					//mixer.clipAction( clip2 ).setDuration(0.5).play();
 
 				} );
 
@@ -115,25 +148,69 @@
 
 			}
 
-			var radius = 600;
+			var radius = 1;
 			var theta = 0;
 
 			var prevTime = Date.now();
+            var accuIndex = 0;
 
 			function render() {
 
 				theta += 0.1;
 
-				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
-				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+				camera.position.x = radius * Math.sin( THREE.Math.degToRad( 0 ) );
+				camera.position.z = radius * Math.cos( THREE.Math.degToRad( 0 ) );
 
 				camera.lookAt( camera.target );
+
+                if( mesh ) {
+                    var t = Date.now() * 0.001;
+					var halfOpen = Math.abs( Math.sin( t * 2 ) )
+					var fullOpen = THREE.Math.clamp( Math.sin( t * 2 - Math.PI * 0.5 ), 0, 1 );
+                    //console.log(a);
+
+                    mesh.morphTargetInfluences = [ halfOpen, fullOpen, 0 ];
+                }
 
 				if ( mixer ) {
 
 					var time = Date.now();
 
-					mixer.update( ( time - prevTime ) * 0.001 );
+                    if( action2 ) {
+                        var tt = ( time * 0.0005 ) % action2._clip.duration;
+
+                        var interpolants = action2._interpolants;
+                        var propertyMixers = action2._propertyBindings;
+                        accuIndex ^= 1;
+
+                        //for ( var j = 0, m = interpolants.length; j !== m; ++ j ) {
+
+                            //interpolants[ j ].evaluate( tt );
+                            //propertyMixers[ j ].accumulate( accuIndex, 0.01 );
+
+                        //}
+
+
+                    }
+                    if( 0 ) {
+                        //action.time =
+                        var tt = ( time * 0.0005 ) % action._clip.duration;
+
+                        var interpolants = action._interpolants;
+                        var propertyMixers = action._propertyBindings;
+                        accuIndex ^= 1;
+
+                        for ( var j = 0, m = interpolants.length; j !== m; ++ j ) {
+
+                            interpolants[ j ].evaluate( tt );
+                            propertyMixers[ j ].accumulate( accuIndex, 0.01 );
+
+                        }
+
+                    }
+                    //mixer.update( 0 );
+
+					//mixer.update( ( time - prevTime ) * 0.001 );
 
 					prevTime = time;
 

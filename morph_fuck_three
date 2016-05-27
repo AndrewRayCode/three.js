@@ -1,0 +1,16 @@
+COLOR_RED=$(tput sgr0 && tput setaf 1)
+COLOR_GREEN=$(tput sgr0 && tput setaf 2)
+COLOR_YELLOW=$(tput sgr0 && tput setaf 3)
+COLOR_DARK_BLUE=$(tput sgr0 && tput setaf 4)
+COLOR_BLUE=$(tput sgr0 && tput setaf 6)
+COLOR_PURPLE=$(tput sgr0 && tput setaf 5)
+COLOR_PINK=$(tput sgr0 && tput bold && tput setaf 5)
+COLOR_LIGHT_GREEN=$(tput sgr0 && tput bold && tput setaf 2)
+COLOR_LIGHT_RED=$(tput sgr0 && tput bold && tput setaf 1)
+COLOR_LIGHT_CYAN=$(tput sgr0 && tput bold && tput setaf 6)
+COLOR_RESET=$(tput sgr0)
+
+git checkout 362cb796d004953274e4986520402de79a68cac5^
+rm -r /Users/andrewray/Library/Application\ Support/Blender/2.77/scripts/addons/io_three
+cp -r utils/exporters/blender/addons/io_three /Users/andrewray/Library/Application\ Support/Blender/2.77/scripts/addons
+echo "${COLOR_CYAN}Completed ${COLOR_PINK}morph_targets${COLOR_RESET}"
